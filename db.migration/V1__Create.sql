@@ -13,12 +13,15 @@ CREATE TABLE companies
     phone                  VARCHAR,
     social_media_facebook  VARCHAR,
     social_media_instagram VARCHAR,
+    social_media_twitter   VARCHAR,
+    social_media_mastodon  VARCHAR,
     social_media_linked_in VARCHAR
 );
 
 CREATE TABLE employees
 (
     id         VARCHAR PRIMARY KEY,
+    company_id VARCHAR                  NOT NULL REFERENCES companies (id),
     first_name VARCHAR                  NOT NULL,
     last_Name  VARCHAR                  NOT NULL,
     email      VARCHAR                  NOT NULL,
@@ -33,8 +36,15 @@ CREATE TABLE projects
     id          VARCHAR PRIMARY KEY,
     name        VARCHAR                  NOT NULL,
     description VARCHAR                  NOT NULL,
-    startDate   TIMESTAMP WITH TIME ZONE NOT NULL,
-    endDate     TIMESTAMP WITH TIME ZONE NOT NULL,
-    status      VARCHAR,
+    start_date  TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_date    TIMESTAMP WITH TIME ZONE NOT NULL,
+    status      VARCHAR                  NOT NULL,
     budget      NUMERIC(16, 2)
+);
+
+CREATE TABLE employee_project
+(
+    employee_id VARCHAR NOT NULL REFERENCES employees (id),
+    project_id  VARCHAR NOT NULL REFERENCES projects (id),
+    CONSTRAINT employee_project_primary_key PRIMARY KEY (employee_id, project_id)
 );

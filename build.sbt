@@ -36,12 +36,15 @@ lazy val server =
     .settings(
       name := "server",
       libraryDependencies ++= Seq(
+        Dependency.doobieCore,
+        Dependency.doobieHikari,
+        Dependency.doobiePostgres,
         Dependency.grackleCore,
         Dependency.grackleDoobie,
-        Dependency.grackleGeneric,
         Dependency.http4sBlazeServer,
         Dependency.http4sCirce,
         Dependency.http4sDsl,
+        Dependency.logback,
         Dependency.postgreSQL
       )
     )
@@ -49,12 +52,14 @@ lazy val server =
 lazy val `load-tests` =
   project
     .in(file("load-tests"))
+    .enablePlugins(GatlingPlugin)
     .settings(commonSettings*)
     .settings(
       name := "load-tests",
       libraryDependencies ++= Seq(
         Dependency.gatlingTestFramework % "test",
         Dependency.gatlingHighcharts % "test",
+        Dependency.grackleCore % "test",
         Dependency.postgreSQL % "test"
       )
     )

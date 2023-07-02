@@ -24,7 +24,13 @@ object Model:
     country: String
   )
 
-  case class SocialMedia(facebook: Option[String], instagram: Option[String], linkedIn: Option[String])
+  case class SocialMedia(
+    facebook: Option[String],
+    instagram: Option[String],
+    twitter: Option[String],
+    mastodon: Option[String],
+    linkedIn: Option[String]
+  )
 
   case class Employee(
     id: UUID,
