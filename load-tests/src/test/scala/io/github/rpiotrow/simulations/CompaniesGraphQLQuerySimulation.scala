@@ -7,7 +7,7 @@ import io.github.rpiotrow.scenarios.Scenarios
 import scala.concurrent.duration.*
 import scala.util.Properties
 
-class FullGraphQLQuerySimulation extends Simulation {
+class CompaniesGraphQLQuerySimulation extends Simulation {
 
   private val baseUrl: String = Properties.envOrElse("TARGET_ADDRESS", "http://localhost:8080")
 
@@ -16,7 +16,7 @@ class FullGraphQLQuerySimulation extends Simulation {
     .shareConnections
 
   setUp(
-    Scenarios.fullQuery.inject(
+    Scenarios.companiesGraphQLQuery.inject(
       (rampUsersPerSec(0) to 20).during(30.seconds),
       constantUsersPerSec(20).during(30.seconds)
     )

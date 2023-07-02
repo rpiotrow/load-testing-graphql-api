@@ -9,6 +9,7 @@ object Dependency {
     val http4s                = "1.0.0-M35"
     val logback               = "1.4.8"
     val postgreSQL            = "42.5.4"
+    val scalaCheck            = "1.17.0"
   }
 
   val doobieCore             = "org.tpolecat"               %% "doobie-core"                 % Version.doobie
@@ -24,4 +25,5 @@ object Dependency {
   val http4sCirce            = "org.http4s"                 %% "http4s-circe"                % Version.http4s
   val logback                = "ch.qos.logback"             %  "logback-classic"             % Version.logback
   val postgreSQL             = "org.postgresql"             %  "postgresql"                  % Version.postgreSQL
+  val scalaCheck             = "org.scalacheck"             %% "scalacheck"                  % Version.scalaCheck
 }
