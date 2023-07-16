@@ -72,6 +72,13 @@ lazy val `test-data` =
     .settings(
       name := "test-data",
       libraryDependencies ++= Seq(
-        Dependency.postgreSQL
+        Dependency.circeGeneric,
+        Dependency.circeParser,
+        Dependency.doobieCore,
+        Dependency.doobieHikari,
+        Dependency.doobiePostgres,
+        Dependency.ducktape,
+        Dependency.postgreSQL,
+        Dependency.sttp
       )
     )
