@@ -7,9 +7,11 @@ object Queries:
     def fields: Seq[Field]
 
   case class CompaniesQuery(fields: Seq[CompanyField]) extends Query
+  case class CompanyQuery(id: String, fields: Seq[CompanyField]) extends Query
 
   object CompaniesQuery:
     enum CompanyField(val name: String) extends Field:
+      case IdF extends CompanyField("id") with Leaf
       case NameF extends CompanyField("name") with Leaf
       case IndustryF extends CompanyField("industry") with Leaf
       case LocationF(val fields: Seq[LocationField]) extends CompanyField("location") with NonLeaf

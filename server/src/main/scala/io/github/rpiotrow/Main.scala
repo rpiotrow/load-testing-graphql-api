@@ -19,7 +19,7 @@ object Main extends IOApp:
           "api",
           GraphQLService.fromMapping(CompaniesMapping.mkMappingFromTransactor(xa))
         )
-        DemoServer.stream[IO](worldGraphQLRoutes).compile.drain
+        HttpServer.stream[IO](worldGraphQLRoutes).compile.drain
       }
       .as(ExitCode.Success)
 

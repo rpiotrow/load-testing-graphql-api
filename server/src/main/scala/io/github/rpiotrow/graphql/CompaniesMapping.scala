@@ -6,6 +6,7 @@ import _root_.doobie.{Meta, Transactor}
 import cats.effect.Sync
 import cats.implicits.*
 import edu.gemini.grackle.*
+import edu.gemini.grackle.PathTerm.UniquePath
 import edu.gemini.grackle.Predicate.*
 import edu.gemini.grackle.Query.*
 import edu.gemini.grackle.QueryCompiler.*
@@ -70,9 +71,9 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
     val name = col("name", Meta[String])
     val description = col("description", Meta[String])
     val startDate = col("start_date", Meta[ZonedDateTime])
-    val endDate = col("start_date", Meta[ZonedDateTime])
-    val status = col("start_date", Meta[ProjectStatus])
-    val budget = col("start_date", Meta[BigDecimal], nullable = true)
+    val endDate = col("end_date", Meta[ZonedDateTime])
+    val status = col("status", Meta[ProjectStatus])
+    val budget = col("budget", Meta[BigDecimal], nullable = true)
 
   object employeeProject extends TableDef("employee_project"):
     val employeeId = col("employee_id", Meta[String])
@@ -81,12 +82,14 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
   val schema =
     schema"""
       type Query {
+        company(id: String!): Company
         companies: [Company!]!
       }
 
       scalar DateTime
 
       type Company {
+        id: String!
         name: String!
         industry: String!
         location: Location!
@@ -130,7 +133,7 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
         startDate: DateTime!
         endDate: DateTime!
         status: ProjectStatus!
-        budget: Float!
+        budget: Float
       }
 
       enum ProjectStatus {
@@ -156,13 +159,14 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
       ObjectMapping(
         tpe = QueryType,
         fieldMappings = List(
+          SqlObject("company"),
           SqlObject("companies")
         )
       ),
       ObjectMapping(
         tpe = CompanyType,
         fieldMappings = List(
-          SqlField("id", companies.id, key = true, hidden = true),
+          SqlField("id", companies.id, key = true),
           SqlField("name", companies.name),
           SqlField("industry", companies.industry),
           SqlObject("location"),
@@ -224,6 +228,14 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
       LeafMapping[ZonedDateTime](DateTimeType),
       LeafMapping[ProjectStatus](ProjectStatusType)
     )
+  override val selectElaborator: SelectElaborator = new SelectElaborator(
+    Map(
+      QueryType -> {
+        case s @ Select("company", List(Binding("id", StringValue(id))), child) =>
+          Select(s.name, Nil, Unique(Filter(Eql(UniquePath(List("id")), Const(id)), child))).success
+      }
+    )
+  )
 
 object CompaniesMapping extends LoggedDoobieMappingCompanion:
   def mkMapping[F[_]: Sync](transactor: Transactor[F], monitor: DoobieMonitor[F]): CompaniesMapping[F] =

@@ -16,15 +16,18 @@ object GraphQLQuery:
     )
 
 object GraphQLQueries:
-
   def from(query: Query): GraphQLQuery =
     GraphQLQuery(
       query match
         case companiesQuery: CompaniesQuery => build(companiesQuery)
+        case companyQuery: CompanyQuery => build(companyQuery)
     )
 
   private def build(query: CompaniesQuery): String =
     s"""{ companies { ${build(query.fields)} } }"""
+
+  private def build(query: CompanyQuery): String =
+    s"""{ company(id: "${query.id}") { ${build(query.fields)} } }"""
 
   private def build(fields: Seq[Field]): String =
     fields.map {

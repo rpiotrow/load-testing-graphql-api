@@ -5,12 +5,23 @@ import org.scalacheck.Gen.*
 
 import io.github.rpiotrow.graphql.Queries.CompaniesQuery
 import io.github.rpiotrow.graphql.Queries.CompaniesQuery.*
+import io.github.rpiotrow.graphql.Queries.CompanyQuery
 import io.github.rpiotrow.graphql.Queries.Field
 
 object QueriesGens:
   def companiesQueries: Gen[CompaniesQuery] =
+    companyFields.map(CompaniesQuery.apply)
+
+  def companyQueries: Gen[CompanyQuery] =
+    for
+      id <- Gen.uuid.map(_.toString)
+      fields <- companyFields
+    yield CompanyQuery(id, fields)
+
+  private def companyFields =
     toFlatSequence(
       Seq(
+        atMostOne(CompanyField.IdF),
         atMostOne(CompanyField.NameF),
         atMostOne(CompanyField.IndustryF),
         location,
@@ -21,7 +32,7 @@ object QueriesGens:
         socialMedia,
         employees
       )
-    ).map(CompaniesQuery.apply)
+    )
 
   private def location: Gen[Option[CompanyField.LocationF]] =
     option {

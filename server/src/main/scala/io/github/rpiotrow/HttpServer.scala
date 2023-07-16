@@ -8,7 +8,7 @@ import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.middleware.Logger
 import org.http4s.server.staticcontent.resourceServiceBuilder
 
-object DemoServer:
+object HttpServer:
   def stream[F[_]: Async](graphQLRoutes: HttpRoutes[F]): Stream[F, Nothing] = {
     val httpApp0 = (
       // Routes for static resources, i.e. GraphQL Playground

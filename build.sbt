@@ -61,7 +61,8 @@ lazy val `load-tests` =
         Dependency.gatlingHighcharts % "test",
         Dependency.grackleCore % "test",
         Dependency.postgreSQL % "test",
-        Dependency.scalaCheck % "test"
+        Dependency.scalaCheck % "test",
+        Dependency.sttp % "test"
       )
     )
 
