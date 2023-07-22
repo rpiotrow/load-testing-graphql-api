@@ -13,7 +13,7 @@ object Scenarios extends ScenariosSetup:
       .exec {
         http("Companies list GraphQL query")
           .post("/api")
-          .body(StringBody("${queryJson}"))
+          .body(StringBody("#{queryJson}"))
           .headers(testHeaders)
           .check(status.is(200))
           .check(jmesPath("errors").notExists)
@@ -26,7 +26,7 @@ object Scenarios extends ScenariosSetup:
       .exec {
         http("Company GraphQL query")
           .post("/api")
-          .body(StringBody("${companyquery}"))
+          .body(StringBody("#{companyquery}"))
           .headers(testHeaders)
           .check(status.is(200))
           .check(jmesPath("errors").notExists)

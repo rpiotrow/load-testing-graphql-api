@@ -7,6 +7,7 @@ lazy val commonSettings = Seq(
   version := "0.0.1-SNAPSHOT",
   organization := "io.github.rpiotrow",
   run / fork := true,
+  run / javaOptions += "-Xmx8G",
   publish / skip := true
 )
 

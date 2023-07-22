@@ -24,7 +24,7 @@ object GraphQLQueries:
     )
 
   private def build(query: CompaniesQuery): String =
-    s"""{ companies { ${build(query.fields)} } }"""
+    s"""{ companies(pageNumber: ${query.pageNumber}, itemsPerPage: ${query.itemsPerPage}, orderBy: ${query.orderBy}) { ${build(query.fields)} } }"""
 
   private def build(query: CompanyQuery): String =
     s"""{ company(id: "${query.id}") { ${build(query.fields)} } }"""

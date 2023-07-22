@@ -18,7 +18,6 @@ trait ScenariosSetup:
   protected lazy val companiesGraphQLQueryAsString: Iterator[Map[String, String]] =
     Iterator.continually {
       val query = companiesQueries.pureApply(Gen.Parameters.default, Seed.random())
-      //TODO: add paging options (pageNumber, itemsPerPage, orderBy)
       Map("queryJson" -> GraphQLQueries.from(query).asJson.noSpaces)
     }
 

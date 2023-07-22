@@ -10,7 +10,13 @@ import io.github.rpiotrow.graphql.Queries.Field
 
 object QueriesGens:
   def companiesQueries: Gen[CompaniesQuery] =
-    companyFields.map(CompaniesQuery.apply)
+    for
+      fields <- companyFields
+      itemsPerPage <- Gen.oneOf(ItemsPerPage.ItemsPerPage_5, ItemsPerPage.ItemsPerPage_10)
+      //assuming there is at least 500 companies to query
+      pageNumber <- Gen.chooseNum(1, 500 / itemsPerPage.value)
+      orderBy <- Gen.oneOf(OrderBy.values.toSeq)
+    yield CompaniesQuery(pageNumber, itemsPerPage, orderBy, fields)
 
   def companyQueries: Gen[CompanyQuery] =
     for

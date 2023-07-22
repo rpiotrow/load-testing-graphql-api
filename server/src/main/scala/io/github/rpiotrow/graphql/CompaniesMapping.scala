@@ -29,10 +29,10 @@ object ProjectStatus:
   //TODO: move doobie meta to separate object for doobie/database codecs
   given Meta[ProjectStatus] =
     Meta[String].timap {
-      case "New" => New
+      case "New"        => New
       case "InProgress" => InProgress
-      case "Completed" => Completed
-      case "Cancelled" => Cancelled
+      case "Completed"  => Completed
+      case "Cancelled"  => Cancelled
     } { _.toString }
 
 trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
@@ -83,7 +83,7 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
     schema"""
       type Query {
         company(id: String!): Company
-        companies: [Company!]!
+        companies(pageNumber: Int = 1, itemsPerPage: ItemsPerPage = ItemsPerPage_10, orderBy: OrderBy = OrderByNameAscending): [Company!]!
       }
 
       scalar DateTime
@@ -134,6 +134,25 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
         endDate: DateTime!
         status: ProjectStatus!
         budget: Float
+      }
+
+      enum ItemsPerPage {
+        ItemsPerPage_5
+        ItemsPerPage_10
+        ItemsPerPage_20
+        ItemsPerPage_30
+        ItemsPerPage_50
+        ItemsPerPage_75
+        ItemsPerPage_100
+      }
+
+      enum OrderBy {
+        OrderByNameAscending
+        OrderByNameDescending
+        OrderByIndustryAscending
+        OrderByIndustryDescending
+        OrderByFoundedYearAscending
+        OrderByFoundedYearDescending
       }
 
       enum ProjectStatus {
@@ -231,6 +250,42 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
   override val selectElaborator: SelectElaborator = new SelectElaborator(
     Map(
       QueryType -> {
+        case s @ Select("companies",
+                        List(
+                          Binding("pageNumber", IntValue(pageNumber)),
+                          Binding("itemsPerPage", TypedEnumValue(itemsPerPage)),
+                          Binding("orderBy", TypedEnumValue(orderBy))
+                        ),
+                        child
+            ) =>
+          val itemsPerPageValue: Int =
+            itemsPerPage.name match
+              case "ItemsPerPage_5"   => 5
+              case "ItemsPerPage_10"  => 10
+              case "ItemsPerPage_20"  => 20
+              case "ItemsPerPage_30"  => 30
+              case "ItemsPerPage_50"  => 50
+              case "ItemsPerPage_75"  => 75
+              case "ItemsPerPage_100" => 100
+              case _                  => 10
+          def limit(query: Query): Query = Limit(itemsPerPageValue, query)
+          def offset(query: Query): Query = Offset(Math.max(0, (pageNumber - 1) * itemsPerPageValue), query)
+          def order(query: Query): Query =
+            orderBy.name match
+              case "OrderByNameAscending" =>
+                OrderBy(OrderSelections(List(OrderSelection[String](CompanyType / "name", ascending = true))), query)
+              case "OrderByNameDescending" =>
+                OrderBy(OrderSelections(List(OrderSelection[String](CompanyType / "name", ascending = false))), query)
+              case "OrderByIndustryAscending" =>
+                OrderBy(OrderSelections(List(OrderSelection[String](CompanyType / "industry", ascending = true))), query)
+              case "OrderByIndustryDescending" =>
+                OrderBy(OrderSelections(List(OrderSelection[String](CompanyType / "industry", ascending = false))), query)
+              case "OrderByFoundedYearAscending" =>
+                OrderBy(OrderSelections(List(OrderSelection[Int](CompanyType / "foundedYear", ascending = true))), query)
+              case "OrderByFoundedYearDescending" =>
+                OrderBy(OrderSelections(List(OrderSelection[Int](CompanyType / "foundedYear", ascending = false))), query)
+
+          Select("companies", Nil, limit(offset(order(child)))).success
         case s @ Select("company", List(Binding("id", StringValue(id))), child) =>
           Select(s.name, Nil, Unique(Filter(Eql(UniquePath(List("id")), Const(id)), child))).success
       }

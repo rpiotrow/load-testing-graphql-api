@@ -1,12 +1,19 @@
 package io.github.rpiotrow.graphql
 
 import io.github.rpiotrow.graphql.Queries.CompaniesQuery.CompanyField
+import io.github.rpiotrow.graphql.Queries.CompaniesQuery.{ItemsPerPage, OrderBy}
 
 object Queries:
   sealed trait Query:
     def fields: Seq[Field]
 
-  case class CompaniesQuery(fields: Seq[CompanyField]) extends Query
+  case class CompaniesQuery(
+    pageNumber: Int = 1,
+    itemsPerPage: ItemsPerPage = ItemsPerPage.ItemsPerPage_5,
+    orderBy: OrderBy = OrderBy.OrderByNameAscending,
+    fields: Seq[CompanyField]
+  ) extends Query
+
   case class CompanyQuery(id: String, fields: Seq[CompanyField]) extends Query
 
   object CompaniesQuery:
@@ -49,11 +56,28 @@ object Queries:
       case StatusF extends ProjectField("status") with Leaf
       case BudgetF extends ProjectField("budget") with Leaf
 
+    enum ItemsPerPage(val value: Int):
+      case ItemsPerPage_5 extends ItemsPerPage(5)
+      case ItemsPerPage_10 extends ItemsPerPage(10)
+      case ItemsPerPage_20 extends ItemsPerPage(20)
+      case ItemsPerPage_30 extends ItemsPerPage(30)
+      case ItemsPerPage_50 extends ItemsPerPage(50)
+      case ItemsPerPage_75 extends ItemsPerPage(75)
+      case ItemsPerPage_100 extends ItemsPerPage(100)
+
+    enum OrderBy:
+      case OrderByNameAscending
+      case OrderByNameDescending
+      case OrderByIndustryAscending
+      case OrderByIndustryDescending
+      case OrderByFoundedYearAscending
+      case OrderByFoundedYearDescending
+
   sealed trait Field:
     def name: String
 
     def fold[A](onLeaf: => A, onNonLeaf: Seq[Field] => A): A = this match
-      case s: Leaf => onLeaf
+      case s: Leaf    => onLeaf
       case s: NonLeaf => onNonLeaf(s.fields)
 
   sealed trait Leaf extends Field
