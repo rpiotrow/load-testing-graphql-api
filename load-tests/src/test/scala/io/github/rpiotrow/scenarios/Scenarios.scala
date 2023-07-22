@@ -4,12 +4,9 @@ import io.circe.syntax.*
 import io.gatling.core.Predef.*
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.*
-import io.github.rpiotrow.graphql.GraphQLQueries
-import io.github.rpiotrow.graphql.QueriesGens.{companiesQueries, companyQueries}
-import org.scalacheck.Gen
-import org.scalacheck.rng.Seed
 
-object Scenarios:
+object Scenarios extends ScenariosSetup:
+
   lazy val companiesGraphQLQuery: ScenarioBuilder =
     scenario("Companies list GraphQL query")
       .feed(companiesGraphQLQueryAsString)
@@ -25,32 +22,13 @@ object Scenarios:
 
   lazy val companyGraphQLQuery: ScenarioBuilder =
     scenario("Company GraphQL query")
-      .feed(companyGraphQLQueryAsString.random)
+      .feed(companyGraphQLQueryFeeder.random)
       .exec {
-        http("GraphQL query for episode")
+        http("Company GraphQL query")
           .post("/api")
-          .body(StringBody("${queryJson}"))
+          .body(StringBody("${companyquery}"))
           .headers(testHeaders)
           .check(status.is(200))
           .check(jmesPath("errors").notExists)
           .check(jmesPath("data.company").exists)
       }
-
-  private val testHeaders = Map(
-    "Accept" -> "application/json; charset=utf-8",
-    "Content-Type" -> "application/json"
-  )
-
-  private lazy val companiesGraphQLQueryAsString: Iterator[Map[String, String]] =
-    Iterator.continually {
-      val query = companiesQueries.pureApply(Gen.Parameters.default, Seed.random())
-      Map("queryJson" -> GraphQLQueries.from(query).asJson.noSpaces)
-    }
-
-  private lazy val companyGraphQLQueryAsString: Array[Map[String, String]] =
-    ScenariosSetup.fetchCompaniesIds.map { companyId =>
-      val query = companyQueries
-        .pureApply(Gen.Parameters.default, Seed.random())
-        .copy(id = companyId)
-      Map("queryJson" -> GraphQLQueries.from(query).asJson.noSpaces)
-    }.toArray

@@ -1,26 +1,39 @@
 package io.github.rpiotrow.scenarios
 
-import cats.effect.unsafe.implicits.global
-import io.circe.Decoder
-import io.circe.parser.parse
-import io.github.rpiotrow.Settings
-import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
+import io.circe.syntax.*
+import io.gatling.core.Predef.*
+import io.gatling.core.feeder.FeederBuilderBase
+import io.gatling.jdbc.Predef.*
+import io.github.rpiotrow.graphql.GraphQLQueries
+import io.github.rpiotrow.graphql.QueriesGens.{companiesQueries, companyQueries}
+import org.scalacheck.Gen
+import org.scalacheck.rng.Seed
 
-object ScenariosSetup:
-  def fetchCompaniesIds: List[String] =
-    val request = basicRequest.get(uri"${Settings.baseUrl}/api?query=$companiesIdsRequest")
-    val response = request.send(backend)
-    (for
-      body <- response.body
-      json <- parse(body)
-      ids <- json.hcursor.downField("data").downField("companies").as[List[CompanyIdResult]]
-    yield ids.map(_.id)).left.map(msg => throw new RuntimeException(s"cannot fetch companies ids: $msg")).merge
+trait ScenariosSetup:
+  protected val testHeaders: Map[String, String] = Map(
+    "Accept" -> "application/json; charset=utf-8",
+    "Content-Type" -> "application/json"
+  )
 
-  private val companiesIdsRequest = "{ companies { id } }"
+  protected lazy val companiesGraphQLQueryAsString: Iterator[Map[String, String]] =
+    Iterator.continually {
+      val query = companiesQueries.pureApply(Gen.Parameters.default, Seed.random())
+      //TODO: add paging options (pageNumber, itemsPerPage, orderBy)
+      Map("queryJson" -> GraphQLQueries.from(query).asJson.noSpaces)
+    }
 
-  private case class CompanyIdResult(id: String)
-  private given Decoder[CompanyIdResult] = Decoder.instance { hCursor =>
-    hCursor.downField("id").as[String].map(CompanyIdResult.apply)
-  }
-
-  private val backend = HttpClientSyncBackend()
+  protected lazy val companyGraphQLQueryFeeder: FeederBuilderBase[Any] =
+    val host = "localhost"
+    val port = 5432
+    val databaseName = "companies"
+    jdbcFeeder(
+      url = s"jdbc:postgresql://$host:$port/$databaseName",
+      username = "postgres",
+      password = "postgres",
+      sql = "SELECT id as companyquery FROM companies"
+    ).asInstanceOf[FeederBuilderBase[String]].transform { case (_, companyId) =>
+      val query = companyQueries
+        .pureApply(Gen.Parameters.default, Seed.random())
+        .copy(id = companyId)
+      GraphQLQueries.from(query).asJson.noSpaces
+    }
