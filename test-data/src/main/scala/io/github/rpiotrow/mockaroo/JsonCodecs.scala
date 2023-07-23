@@ -37,4 +37,12 @@ object JsonCodecs:
       status <- c.downField("status").as[ProjectStatus]
       budget <- c.downField("budget").as[BigDecimal]
     yield Project(id, name, description, startDate, endDate = startDate.plus(duration, ChronoUnit.DAYS), status, budget)
-  given Decoder[Company] = deriveDecoder[Company]
+  given Decoder[Company] = deriveDecoder[Company].map { company =>
+    company.copy(socialMedia = SocialMedia(
+      facebook = Some(s"https://www.facebook.com/${company.name}"),
+      instagram = Some(s"https://instagram.com/${company.name}"),
+      twitter = Some(s"https://twitter.com/${company.name}"),
+      mastodon = Some(s"https://mastodon.social/@${company.name}"),
+      linkedIn = Some(s"https://www.linkedin.com/company/${company.name}")
+    ))
+  }
