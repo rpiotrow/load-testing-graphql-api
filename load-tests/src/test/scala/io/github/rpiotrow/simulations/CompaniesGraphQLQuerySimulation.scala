@@ -17,7 +17,8 @@ class CompaniesGraphQLQuerySimulation extends Simulation {
   setUp(
     Scenarios.companiesGraphQLQuery.inject(
       (rampConcurrentUsers(0) to 5).during(30.seconds),
-      constantConcurrentUsers(5).during(30.seconds)
+      constantConcurrentUsers(5).during(30.seconds),
+      (rampConcurrentUsers(5) to 0).during(30.seconds)
     )
   )
     .protocols(httpConf)
