@@ -5,7 +5,7 @@ import io.gatling.core.Predef.*
 import io.gatling.core.feeder.FeederBuilderBase
 import io.gatling.jdbc.Predef.*
 import io.github.rpiotrow.graphql.GraphQLQueries
-import io.github.rpiotrow.graphql.QueriesGens.{companiesQueries, companyQueries}
+import io.github.rpiotrow.graphql.QueriesGens.{companiesQuery, companyQuery}
 import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 
@@ -17,7 +17,7 @@ trait ScenariosSetup:
 
   protected lazy val companiesGraphQLQueryAsString: Iterator[Map[String, String]] =
     Iterator.continually {
-      val query = companiesQueries.pureApply(Gen.Parameters.default, Seed.random())
+      val query = companiesQuery.pureApply(Gen.Parameters.default, Seed.random())
       Map("queryJson" -> GraphQLQueries.from(query).asJson.noSpaces)
     }
 
@@ -30,9 +30,8 @@ trait ScenariosSetup:
       username = "postgres",
       password = "postgres",
       sql = "SELECT id as companyquery FROM companies"
-    ).asInstanceOf[FeederBuilderBase[String]].transform { case (_, companyId) =>
-      val query = companyQueries
+    ).transform { case (_, companyId: String) =>
+      val query = companyQuery(companyId)
         .pureApply(Gen.Parameters.default, Seed.random())
-        .copy(id = companyId)
       GraphQLQueries.from(query).asJson.noSpaces
     }

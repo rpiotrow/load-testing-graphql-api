@@ -83,7 +83,11 @@ trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
     schema"""
       type Query {
         company(id: String!): Company
-        companies(pageNumber: Int = 1, itemsPerPage: ItemsPerPage = ItemsPerPage_10, orderBy: OrderBy = OrderByNameAscending): [Company!]!
+        companies(
+          pageNumber: Int = 1,
+          itemsPerPage: ItemsPerPage = ItemsPerPage_10,
+          orderBy: OrderBy = OrderByNameAscending
+        ): [Company!]!
       }
 
       scalar DateTime
