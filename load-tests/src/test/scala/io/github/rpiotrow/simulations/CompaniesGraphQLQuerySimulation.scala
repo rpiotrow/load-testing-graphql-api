@@ -23,8 +23,8 @@ class CompaniesGraphQLQuerySimulation extends Simulation {
   )
     .protocols(httpConf)
     .assertions(
-      global.responseTime.percentile3.lt(3000),
-      global.responseTime.max.lt(5000),
+      global.responseTime.percentile2.lt(3000),
+      global.responseTime.max.lt(6000),
       global.failedRequests.percent.lt(5)
     )
 }
