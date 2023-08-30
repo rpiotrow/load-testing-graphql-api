@@ -14,26 +14,11 @@ import edu.gemini.grackle.Value.*
 import edu.gemini.grackle.doobie.postgres.{DoobieMapping, DoobieMonitor, LoggedDoobieMappingCompanion}
 import edu.gemini.grackle.sql.Like
 import edu.gemini.grackle.syntax.*
-import io.circe.Encoder
+import io.github.rpiotrow.domain.ProjectStatus
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.time.ZonedDateTime
-
-//TODO: duplicate from model
-enum ProjectStatus:
-  case New, InProgress, Completed, Cancelled
-object ProjectStatus:
-  //TODO: move encoder to separate object for circe/json codecs
-  given Encoder[ProjectStatus] = Encoder.encodeString.contramap(_.toString)
-  //TODO: move doobie meta to separate object for doobie/database codecs
-  given Meta[ProjectStatus] =
-    Meta[String].timap {
-      case "New"        => New
-      case "InProgress" => InProgress
-      case "Completed"  => Completed
-      case "Cancelled"  => Cancelled
-    } { _.toString }
 
 trait CompaniesMapping[F[_]] extends DoobieMapping[F]:
 
