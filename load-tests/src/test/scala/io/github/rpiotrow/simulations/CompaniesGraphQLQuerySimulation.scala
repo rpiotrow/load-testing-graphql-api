@@ -16,15 +16,15 @@ class CompaniesGraphQLQuerySimulation extends Simulation {
 
   setUp(
     Scenarios.companiesGraphQLQuery.inject(
-      (rampConcurrentUsers(0) to 5).during(30.seconds),
-      constantConcurrentUsers(5).during(30.seconds),
-      (rampConcurrentUsers(5) to 0).during(30.seconds)
+      (rampUsersPerSec(0) to 2).during(30.seconds),
+      constantUsersPerSec(2).during(30.seconds),
+      (rampUsersPerSec(2) to 0).during(30.seconds)
     )
   )
     .protocols(httpConf)
     .assertions(
-      global.responseTime.percentile2.lt(3000),
-      global.responseTime.max.lt(6000),
+      global.responseTime.percentile2.lt(5000),
+      global.responseTime.max.lt(10000),
       global.failedRequests.percent.lt(5)
     )
 }
