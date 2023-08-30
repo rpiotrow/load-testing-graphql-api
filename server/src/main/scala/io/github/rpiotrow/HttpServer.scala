@@ -2,29 +2,30 @@ package io.github.rpiotrow
 
 import cats.effect.Async
 import cats.implicits.*
+import com.comcast.ip4s.*
 import fs2.Stream
+import fs2.io.net.Network
 import org.http4s.HttpRoutes
-import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
 import org.http4s.server.staticcontent.resourceServiceBuilder
+import org.typelevel.log4cats.LoggerFactory
 
 object HttpServer:
-  def stream[F[_]: Async](graphQLRoutes: HttpRoutes[F]): Stream[F, Nothing] = {
-    val httpApp0 = (
-      // Routes for static resources, i.e. GraphQL Playground
-      resourceServiceBuilder[F]("/assets").toRoutes <+>
-        // GraphQL routes
-        graphQLRoutes
-    ).orNotFound
-
-    val httpApp = Logger.httpApp(true, false)(httpApp0)
-
-    // Spin up the server ...
-    //TODO: move to ember
+  def run[F[_]: Async: Network: LoggerFactory](graphQLRoutes: HttpRoutes[F]): F[Unit] =
     for
-      exitCode <- BlazeServerBuilder[F]
-        .bindHttp(8080, "0.0.0.0")
+      // Routes for static resources, i.e. GraphQL Playground
+      assetRoutes <- resourceServiceBuilder[F]("/assets").toRoutes
+      // adding GraphQL routes
+      routes = (assetRoutes <+> graphQLRoutes).orNotFound
+      // request and response logger
+      httpApp = Logger.httpApp[F](true, false)(routes)
+      // Spin up the server ...
+      _ <- EmberServerBuilder
+        .default[F]
+        .withHost(ipv4"0.0.0.0")
+        .withPort(port"8080")
         .withHttpApp(httpApp)
-        .serve
-    yield exitCode
-  }.drain
+        .build
+        .useForever
+    yield ()

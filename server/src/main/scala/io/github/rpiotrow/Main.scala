@@ -5,6 +5,8 @@ import cats.implicits.*
 import doobie.hikari.HikariTransactor
 import io.github.rpiotrow.graphql.{CompaniesMapping, GraphQLService}
 import io.github.rpiotrow.postgres.PostgresConnectionInfo
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
@@ -12,6 +14,7 @@ import scala.concurrent.duration.*
 
 object Main extends IOApp:
   def run(args: List[String]): IO[ExitCode] =
+    given LoggerFactory[IO] = Slf4jFactory.create[IO]
     val connectionInfo = PostgresConnectionInfo.local
     transactor(connectionInfo)
       .use { xa =>
@@ -19,7 +22,7 @@ object Main extends IOApp:
           "api",
           GraphQLService.fromMapping(CompaniesMapping.mkMappingFromTransactor(xa))
         )
-        HttpServer.stream[IO](worldGraphQLRoutes).compile.drain
+        HttpServer.run[IO](worldGraphQLRoutes)
       }
       .as(ExitCode.Success)
 

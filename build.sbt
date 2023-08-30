@@ -6,6 +6,7 @@ lazy val commonSettings = Seq(
   scalaVersion := scala3Version,
   version := "0.0.1-SNAPSHOT",
   organization := "io.github.rpiotrow",
+  scalacOptions := Seq("-unchecked", "-deprecation"),
   run / fork := true,
   run / javaOptions += "-Xmx8G",
   publish / skip := true
@@ -42,7 +43,7 @@ lazy val server =
         Dependency.doobiePostgres,
         Dependency.grackleCore,
         Dependency.grackleDoobie,
-        Dependency.http4sBlazeServer,
+        Dependency.http4sEmberServer,
         Dependency.http4sCirce,
         Dependency.http4sDsl,
         Dependency.logback,
